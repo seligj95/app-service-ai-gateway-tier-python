@@ -1,0 +1,24 @@
+<link rel="stylesheet" href="/static/site.css">
+<main class="shell">
+  <header>
+    <p class="eyebrow">Preview-only sample</p>
+    <h1>App Service AI Gateway tier chat</h1>
+    <p class="summary">This chat calls the dedicated gateway model and its read-only MCP ToolServer.</p>
+  </header>
+  <section class="status" aria-label="Runtime status">
+    <span class="dot {{ 'ready' if configured else 'waiting' }}"></span>
+    <span>{{ 'Gateway configured' if configured else 'Gateway configuration required' }}</span>
+    <span class="muted">{{ site_name }} · {{ slot_name }}</span>
+  </section>
+  <section class="chat" aria-live="polite">
+    <div id="transcript" class="transcript"></div>
+    <form id="chat-form">
+      <label for="message">Ask the agent</label>
+      <div class="composer">
+        <textarea id="message" name="message" maxlength="8000" placeholder="Ask about this App Service sample…" required></textarea>
+        <button type="submit">Send</button>
+      </div>
+    </form>
+  </section>
+</main>
+<script src="/static/chat.js" defer></script>
