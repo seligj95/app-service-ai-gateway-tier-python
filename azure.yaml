@@ -16,6 +16,10 @@ infra:
   module: main
 
 hooks:
+  predeploy:
+    shell: sh
+    continueOnError: false
+    run: azd env set AZD_DEPLOY_WEB_SLOT_NAME production --no-prompt >/dev/null
   preprovision:
     shell: sh
     continueOnError: false

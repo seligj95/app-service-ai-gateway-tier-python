@@ -77,8 +77,6 @@ def test_toolserver_contract_and_no_secret_env_persistence() -> None:
     assert '"failureMode": "failClosed"' in script
     assert "streamableHttp" in script
     assert "contains(keys(properties.endpoints[0].credentials.headers)" in script
-    assert "az webapp deployment slot swap" in script
-    assert "WEB_STAGING_URL" in script
     assert "azd env set AZURE_AI_GATEWAY_API_KEY" not in script
     assert 'echo "${gateway_api_key}"' not in script
     assert 'echo "${mcp_backend_secret}"' not in script
@@ -89,6 +87,18 @@ def test_toolserver_contract_and_no_secret_env_persistence() -> None:
     assert "param toolServerConfigs object" in bicep
     assert "for config in items(toolServerConfigs)" in bicep
     assert "resource appServiceToolServer" not in bicep
+
+
+def test_postdeploy_verifies_production_without_swapping_staging() -> None:
+    script = (ROOT / "scripts/postprovision.sh").read_text()
+    azure_yaml = (ROOT / "azure.yaml").read_text()
+    verify_branch = script.split('else\n  current_stage="runtime key retrieval"', 1)[1]
+    assert 'current_stage="production web readiness"' in verify_branch
+    assert 'web_url="${web_url:-https://${web_name}.azurewebsites.net}"' in script
+    assert "AZD_DEPLOY_WEB_SLOT_NAME production" in azure_yaml
+    assert "WEB_STAGING_URL" not in script
+    assert "az webapp deployment slot swap" not in script
+    assert "target-slot production" not in script
 
 
 def test_lifecycle_is_bounded_and_guarded_to_current_environment() -> None:
@@ -129,6 +139,7 @@ def test_preprovision_initializes_optional_azd_parameters() -> None:
     assert "ENABLE_KEY_VAULT_PRIVATE_ENDPOINT false" in defaults
     assert "FOUNDRY_MODEL_VERSION 2025-08-07" in defaults
     assert "GATEWAY_TOKEN_LIMIT_PER_MINUTE 1000" in defaults
+    assert "AZD_DEPLOY_WEB_SLOT_NAME production" in defaults
     assert "--output" not in defaults
     assert "resourceGroup: ${AZURE_RESOURCE_GROUP}" in azure_yaml
     assert "resourceName: ${WEB_NAME}" in azure_yaml

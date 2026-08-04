@@ -67,7 +67,8 @@ security boundaries.
 ## Prerequisites
 
 - Python 3.12.
-- Azure Developer CLI (`azd`) and Azure CLI with Bicep support.
+- Azure Developer CLI 1.29.0 or later and Azure CLI with Bicep support. Azd
+  1.29.0 adds explicit App Service slot targeting used by this sample.
 - An Azure subscription authorized for the dedicated AI Gateway tier preview.
 - A selected preview region: `eastus2` or `swedencentral`.
 - Permission to create the resource group and role assignments. The
@@ -98,11 +99,13 @@ azd env set KEY_VAULT_PUBLIC_NETWORK_ACCESS Enabled
 azd env set ENABLE_KEY_VAULT_PRIVATE_ENDPOINT false
 azd env set FOUNDRY_MODEL_VERSION 2025-08-07
 azd env set GATEWAY_TOKEN_LIMIT_PER_MINUTE 1000
+azd env set AZD_DEPLOY_WEB_SLOT_NAME production
 ```
 
 If the optional values are omitted, the pre-provision hook supplies `Enabled`,
-`false`, `2025-08-07`, and `1000`, and resolves the current Azure CLI principal.
-This prevents empty azd substitutions from overriding Bicep defaults.
+`false`, `2025-08-07`, `1000`, and the explicit `production` App Service target,
+and resolves the current Azure CLI principal. This prevents empty azd
+substitutions from overriding Bicep defaults or ambiguous slot selection.
 
 For an automation identity, obtain and set its Entra **object ID** instead of
 using the interactive `az ad signed-in-user` command. For Demo Three, replace
@@ -225,11 +228,13 @@ model route, MCP ToolServer route, and telemetry exporter without emitting the
 runtime key. Splitting it this way avoids testing an App Service `/mcp`
 endpoint before azd deploys the application.
 
-Only the production app carries `azd-service-name: web`. The App Service azd
-deployer uploads to the available staging slot; the postdeploy hook verifies
-staging, swaps it into production, then verifies production and gateway-routed
-MCP. This makes the staging slot part of the default release flow rather than
-an unused resource.
+Only the production app carries `azd-service-name: web`. A predeploy hook sets
+the azd-supported `AZD_DEPLOY_WEB_SLOT_NAME=production` target explicitly, and
+postdeploy verifies the production URL directly. The sample does not
+automatically deploy or swap the staging slot: swapping an empty or stale slot
+is unsafe. The slot is an optional demonstration surface. To use it, deploy a
+reviewed package explicitly with `az webapp deploy --slot staging`, verify its
+health, and initiate a slot swap separately.
 
 ## Build Bicep
 

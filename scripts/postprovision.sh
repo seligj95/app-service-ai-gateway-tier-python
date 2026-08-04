@@ -202,8 +202,6 @@ key_vault_resource_id="$(required_value KEY_VAULT_RESOURCE_ID "${key_vault_resou
 web_name="$(required_value WEB_NAME "$(first_value "${WEB_NAME:-}" "$(azd_value WEB_NAME)")")"
 web_url="$(first_value "${WEB_URL:-}" "$(azd_value WEB_URL)")"
 web_url="${web_url:-https://${web_name}.azurewebsites.net}"
-web_staging_url="$(first_value "${WEB_STAGING_URL:-}" "$(azd_value WEB_STAGING_URL)")"
-web_staging_url="${web_staging_url:-https://${web_name}-staging.azurewebsites.net}"
 runtime_key_name="$(required_value AI_GATEWAY_RUNTIME_KEY_NAME "$(first_value "${AI_GATEWAY_RUNTIME_KEY_NAME:-}" "$(azd_value AI_GATEWAY_RUNTIME_KEY_NAME)")")"
 runtime_key_secret_name="$(required_value GATEWAY_RUNTIME_KEY_SECRET_NAME "$(first_value "${GATEWAY_RUNTIME_KEY_SECRET_NAME:-}" "$(azd_value GATEWAY_RUNTIME_KEY_SECRET_NAME)")")"
 mcp_secret_name="$(required_value MCP_BACKEND_SECRET_NAME "$(first_value "${MCP_BACKEND_SECRET_NAME:-}" "$(azd_value MCP_BACKEND_SECRET_NAME)")")"
@@ -293,19 +291,6 @@ else
   wait_for tool_server_registered || fail
   current_stage="telemetry exporter registration"
   wait_for telemetry_registered || fail
-  current_stage="staging web readiness"
-  production_web_url="${web_url}"
-  web_url="${web_staging_url}"
-  wait_for web_ready || fail
-  current_stage="staging slot swap"
-  az webapp deployment slot swap \
-    --resource-group "${resource_group}" \
-    --name "${web_name}" \
-    --slot staging \
-    --target-slot production \
-    --only-show-errors \
-    -o none >/dev/null 2>&1 || fail
-  web_url="${production_web_url}"
   current_stage="production web readiness"
   wait_for web_ready || fail
   current_stage="gateway model readiness"

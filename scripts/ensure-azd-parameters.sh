@@ -38,6 +38,7 @@ set_default KEY_VAULT_PUBLIC_NETWORK_ACCESS Enabled
 set_default ENABLE_KEY_VAULT_PRIVATE_ENDPOINT false
 set_default FOUNDRY_MODEL_VERSION 2025-08-07
 set_default GATEWAY_TOKEN_LIMIT_PER_MINUTE 1000
+set_default AZD_DEPLOY_WEB_SLOT_NAME production
 
 if [[ -z "$(azd_value AZURE_PRINCIPAL_ID)" ]]; then
   principal_id="$(resolve_principal_id || true)"

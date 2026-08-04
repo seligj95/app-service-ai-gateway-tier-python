@@ -224,5 +224,11 @@ Validated on 2026-08-03 against Demo Three Subscription in East US 2.
   checks. Gateway telemetry contains six `gen_ai.client.token.usage` samples
   totaling 1336 tokens. The documented preview limitation remains: gateway OTLP
   exports model token usage, not MCP traffic.
-- Both production and staging `/health` endpoints return 200 after the
-  staging-first deployment and swap flow.
+- Production `/health` returns 200 after `azd deploy`; postdeploy verifies that
+  URL directly and performs no slot swap. Predeploy pins azd's explicit
+  `AZD_DEPLOY_WEB_SLOT_NAME=production` target. Live validation with azd 1.29.0
+  reported `Deploying to production (main app)` and created production
+  deployment `42587b10-f020-4354-87b6-ab8a22e0687a`. The existing staging slot
+  also returned 200, with older deployment
+  `6182a91d-93ae-42b6-af4f-42809488a1a0`; staging was not touched by the final
+  production deploy and is not part of the default deployment contract.

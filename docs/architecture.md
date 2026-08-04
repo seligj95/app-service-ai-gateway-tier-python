@@ -88,9 +88,11 @@ the deployment and client-visible name stable, matching the published pattern.
 
 The plan and production app add `azd-service-name: web` to the shared
 environment tags; the staging slot intentionally does not compete for azd
-service discovery. The azd App Service deployer uploads to staging; the
-postdeploy hook health-checks staging, swaps it into production, and then
-verifies production and gateway-routed MCP. Before `azd down`, the bounded
+service discovery. Predeploy explicitly sets azd's
+`AZD_DEPLOY_WEB_SLOT_NAME=production` target. Postdeploy verifies production
+directly and never swaps the staging slot automatically. Staging is an
+optional/manual deployment-slot demonstration that must be explicitly deployed
+and health-checked before a separate swap. Before `azd down`, the bounded
 `predown` lifecycle hook
 records a verified current-environment gateway marker; `postdown` may purge
 only the matching soft-deleted gateway.
