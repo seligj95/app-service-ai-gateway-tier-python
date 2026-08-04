@@ -117,9 +117,10 @@ placing it in terminal output, azd environment values, or command logs. It
 removes those files on exit.
 
 Secret creation uses the Key Vault ARM resource API rather than requiring the
-deploying workstation to reach the vault data plane. This supports the Demo
-Three `SecuredByPerimeter` setting; App Service reaches the vault privately
-through its VNet integration, Key Vault private endpoint, and private DNS.
+deploying workstation to reach the vault data plane. This supports an optional
+`SecuredByPerimeter` configuration; App Service reaches the vault privately
+through its VNet integration, Key Vault private endpoint, and private DNS when
+that network design is enabled.
 
 Before provisioning, an initialization hook supplies portable defaults for
 optional azd parameters and resolves the current deployment principal when

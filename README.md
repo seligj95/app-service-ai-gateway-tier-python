@@ -108,19 +108,20 @@ and resolves the current Azure CLI principal. This prevents empty azd
 substitutions from overriding Bicep defaults or ambiguous slot selection.
 
 For an automation identity, obtain and set its Entra **object ID** instead of
-using the interactive `az ad signed-in-user` command. For Demo Three, replace
-the portable network setting with:
+using the interactive `az ad signed-in-user` command. If the target environment
+requires Key Vault to use an existing network security perimeter, replace the
+portable network settings with:
 
 ```bash
 azd env set KEY_VAULT_PUBLIC_NETWORK_ACCESS SecuredByPerimeter
 azd env set ENABLE_KEY_VAULT_PRIVATE_ENDPOINT true
 ```
 
-Other subscriptions must set `Enabled`, `Disabled`, or another approved
-parameter value appropriate to their network design. `SecuredByPerimeter`
-requires an existing perimeter managed outside this sample. After review and
-authorization, the normal deployment command is `azd up`; this repository
-does not place any runtime key into the azd environment.
+Use `Enabled`, `Disabled`, or another approved parameter value when appropriate
+for the target network design. `SecuredByPerimeter` requires an existing
+perimeter managed outside this sample. After review and authorization, the
+normal deployment command is `azd up`; this repository does not place any
+runtime key into the azd environment.
 
 ## Local development and tests
 
@@ -176,19 +177,21 @@ Vault Secrets User access.
 ### Key Vault networking portability
 
 The Bicep default is `Enabled`; azd supplies
-`KEY_VAULT_PUBLIC_NETWORK_ACCESS` through `infra/main.parameters.json`. For
-Demo Three, set the active environment value before deployment:
+`KEY_VAULT_PUBLIC_NETWORK_ACCESS` through `infra/main.parameters.json`. When an
+approved target environment requires an existing network security perimeter,
+set the active environment values before deployment:
 
 ```bash
 azd env set KEY_VAULT_PUBLIC_NETWORK_ACCESS SecuredByPerimeter
+azd env set ENABLE_KEY_VAULT_PRIVATE_ENDPOINT true
 ```
 
 That value assumes an appropriate existing network security perimeter managed
 outside this sample. The sample deliberately does **not** create or guess a
-network security perimeter. Other subscriptions should set `Enabled` or an
-approved value. Set the optional `enableKeyVaultPrivateEndpoint` Bicep
-parameter only when the target network design includes private DNS and App
-Service outbound networking requirements.
+network security perimeter. Use `Enabled` or another approved value when the
+target subscription does not use that design. Enable the private endpoint only
+when the target network design includes private DNS and App Service outbound
+networking requirements.
 
 `DISABLE_FOUNDRY_LOCAL_AUTH` defaults to `true`, so the gateway uses its
 managed identity rather than a local Azure AI Services key. Confirm service
@@ -303,10 +306,9 @@ printf '%s\n' "header = \"api-key: ${RUNTIME_KEY}\"" |
     --data '{"model":"appservice-chat","messages":[{"role":"user","content":"short test"}]}'
 ```
 
-Expected result: `429`. On the Demo Three validation deployment on 2026-08-03,
-the dedicated-tier preview did **not** emit `Retry-After`. The application
-therefore uses its bounded jittered delay, while still honoring `Retry-After`
-when a future preview response includes it.
+Expected result: `429`. Preview responses may omit `Retry-After`, so the
+application uses a bounded jittered delay when the header is absent and honors
+the server-provided value when it is present.
 
 ### Mocked transient 5xx and partial streaming
 

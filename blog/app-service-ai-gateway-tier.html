@@ -58,7 +58,7 @@
   <li>Allow the bounded post-provision hook to retrieve the gateway-generated runtime key, store it and a generated MCP backend secret in Key Vault, and update the ToolServer credential payload.</li>
   <li>Open the App Service chat page. Its SSE endpoint creates a correlation ID and streams model text through the dedicated OpenAI v1 route.</li>
   <li>Ask an operational question. The Agent Framework can use the read-only MCP ToolServer route; the gateway injects the backend secret only on that hop.</li>
-  <li>Use the documented failure procedures to confirm 401, 404, token-policy 429 behavior, mocked 5xx retry behavior, direct MCP denial, and telemetry boundaries. The validated preview returned 429 without a Retry-After header, so the client uses bounded fallback backoff.</li>
+  <li>Use the documented failure procedures to confirm 401, 404, token-policy 429 behavior, mocked 5xx retry behavior, direct MCP denial, and telemetry boundaries. Because preview 429 responses may omit <code>Retry-After</code>, the client uses bounded fallback backoff when the header is absent.</li>
 </ol>
 
 <h2>Preview cautions</h2>

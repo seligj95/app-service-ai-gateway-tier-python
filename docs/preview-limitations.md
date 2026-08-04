@@ -25,9 +25,9 @@ availability, limits, and behavior may change without notice.
    managed identity provider in the selected preview API/region.
 4. Confirm the ToolServer child accepts the documented streamable HTTP and
    header credential payload at deployment time.
-5. The Demo Three validation deployment returned 429 for the model's structured
-   `tokenLimit` policy but did not emit `Retry-After`. The client uses bounded
-   jittered backoff when the header is absent and honors it when present.
+5. Confirm whether a 429 from the model's structured `tokenLimit` policy emits
+   `Retry-After`. The client uses bounded jittered backoff when the header is
+   absent and honors it when present.
 6. Confirm Key Vault reference resolution after RBAC propagation; role
    assignment convergence is asynchronous.
 7. Confirm stable model swap behavior before claiming that a backing deployment
@@ -43,9 +43,9 @@ secrets from custom telemetry attributes.
 
 ## Key Vault network mode
 
-The portable Bicep default is `publicNetworkAccess: Enabled`. Demo Three uses
-`SecuredByPerimeter` to satisfy its inherited policy and enables the sample's
-Key Vault private endpoint so App Service Key Vault references use VNet
-integration and private DNS. This repository intentionally does not create or
-change a network security perimeter. Other subscriptions must choose settings
-that match their network design.
+The portable Bicep default is `publicNetworkAccess: Enabled`. Environments that
+require an existing network security perimeter can use
+`SecuredByPerimeter` and enable the sample's Key Vault private endpoint so App
+Service Key Vault references use VNet integration and private DNS. This
+repository intentionally does not create or change a network security
+perimeter. Choose settings that match the target subscription's network design.

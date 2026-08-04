@@ -50,9 +50,8 @@ and the checklist is evidence gathering rather than a promise of availability.
 ## Failure and telemetry claims
 
 - [ ] Capture an invalid key 401 and an unknown model 404.
-- [x] Capture a token-policy 429 in a disposable environment. Demo Three on
-  2026-08-03 did not emit `Retry-After`; retain that limitation until a future
-  preview build proves otherwise.
+- [ ] Capture a token-policy 429 in a disposable environment and record whether
+  the preview response includes `Retry-After`.
 - [ ] Capture local mocked 5xx and partial-stream test results rather than
   mutating a shared preview gateway.
 - [ ] Confirm App Insights correlation ID, route, and status telemetry.
