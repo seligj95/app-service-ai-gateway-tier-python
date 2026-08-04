@@ -2,7 +2,7 @@
 
 ## Status
 
-Validated
+Deployed and Verified
 
 ## Scope
 
@@ -138,7 +138,7 @@ MCP tool access, with no direct provider fallback.
   - direct MCP call without its backend secret is denied
   - invalid gateway key returns 401
   - unknown model returns 404
-  - token policy returns 429 with `Retry-After`
+  - token policy returns 429 and records whether `Retry-After` is present
   - transient 5xx behavior is tested without unsafe production mutation
   - app and model-token telemetry arrives in Application Insights
 - A backing model swap is exercised if safe, otherwise a precise procedure is
@@ -220,3 +220,9 @@ Validated on 2026-08-03 against Demo Three Subscription in East US 2.
   header-present and header-absent bounded retry behavior.
 - Live role verification passed for gateway Foundry User and production/staging
   Key Vault Secrets User assignments.
+- Application Insights contains 105 request records from deployment and live
+  checks. Gateway telemetry contains six `gen_ai.client.token.usage` samples
+  totaling 1336 tokens. The documented preview limitation remains: gateway OTLP
+  exports model token usage, not MCP traffic.
+- Both production and staging `/health` endpoints return 200 after the
+  staging-first deployment and swap flow.
