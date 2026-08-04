@@ -21,16 +21,18 @@ The application retry wrapper is therefore the sole model retry mechanism.
 It builds an `MCPStreamableHTTPTool` for the gateway ToolServer route with:
 
 - a 30-second explicit MCP request timeout;
-- a fixed raw remote allow-list containing `get_service_status` and
-  `get_deployment_context`;
-- the `appservice-ops` tool-name prefix, which exposes those functions locally
-  as `appservice-ops_get_service_status` and
+- a fixed allow-list containing the AI Gateway-advertised remote names
+  `appservice-ops_get_service_status` and
   `appservice-ops_get_deployment_context`;
+- no additional Agent Framework tool-name prefix, avoiding a double prefix;
 - an origin-scoped header provider for the runtime `api-key`.
 
-The ToolServer then adds `x-appservice-mcp-secret` to its backend request. The
-FastAPI `/mcp` endpoint rejects absent or invalid values in constant time. It
-does not expose mutable or destructive tools.
+The backend `/mcp` server defines raw `get_service_status` and
+`get_deployment_context` names. The AI Gateway ToolServer route advertises them
+to Agent Framework with its `appservice-ops` prefix and adds
+`x-appservice-mcp-secret` to the backend request. The FastAPI `/mcp` endpoint
+rejects absent or invalid values in constant time. It does not expose mutable or
+destructive tools.
 
 ## Streaming and errors
 

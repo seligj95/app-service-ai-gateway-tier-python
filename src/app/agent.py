@@ -45,10 +45,9 @@ class GatewayAgent:
                 name="appservice-ops",
                 url=self._settings.gateway_mcp_url,
                 request_timeout=self._settings.mcp_timeout_seconds,
-                tool_name_prefix="appservice-ops",
                 allowed_tools=(
-                    "get_service_status",
-                    "get_deployment_context",
+                    "appservice-ops_get_service_status",
+                    "appservice-ops_get_deployment_context",
                 ),
                 header_provider=lambda _kwargs: gateway_headers,
             )
@@ -57,8 +56,9 @@ class GatewayAgent:
                 name="AppServiceGatewayAgent",
                 instructions=(
                     "You are a concise App Service operations assistant. Use only the supplied "
-                    "read-only tools when operational context is necessary. When asked for live "
-                    "service or deployment state, call the matching appservice-ops tool."
+                    "read-only tools when operational context is necessary. For live service or "
+                    "deployment questions, you MUST call the matching appservice-ops tool before "
+                    "answering. Never claim lack of access when a matching tool is available."
                 ),
                 tools=mcp_tool,
             )

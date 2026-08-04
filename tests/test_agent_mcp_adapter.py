@@ -31,12 +31,12 @@ async def test_connected_agent_exposes_prefixed_mcp_tools_and_calls_remote_tool(
             return types.ListToolsResult(
                 tools=[
                     types.Tool(
-                        name="get_service_status",
+                        name="appservice-ops_get_service_status",
                         description="Return service status.",
                         inputSchema={"type": "object", "properties": {}},
                     ),
                     types.Tool(
-                        name="get_deployment_context",
+                        name="appservice-ops_get_deployment_context",
                         description="Return deployment context.",
                         inputSchema={"type": "object", "properties": {}},
                     ),
@@ -103,7 +103,7 @@ async def test_connected_agent_exposes_prefixed_mcp_tools_and_calls_remote_tool(
             str(content.text) for content in result if getattr(content, "text", None)
         )
 
-    assert remote_calls == [("get_service_status", {})]
+    assert remote_calls == [("appservice-ops_get_service_status", {})]
     assert "'service': 'app-service-ai-gateway-tier'" in result_text
     assert "'status': 'healthy'" in result_text
     assert "'instance': 'test-instance'" in result_text
