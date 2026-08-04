@@ -39,6 +39,7 @@ def configure_telemetry(connection_string: str | None) -> bool:
     """Configure Azure Monitor only when App Service supplies its connection string."""
 
     os.environ["OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT"] = "false"
+    logging.getLogger("app").setLevel(logging.INFO)
     if not connection_string:
         return False
     try:

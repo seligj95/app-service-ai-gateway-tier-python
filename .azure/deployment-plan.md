@@ -175,7 +175,7 @@ registry.
 
 Validated on 2026-08-04 without recording subscription-specific identifiers:
 
-- `PATH="$PWD/.venv/bin:$PATH" ./scripts/run-tests.sh`: 32 tests passed,
+- `PATH="$PWD/.venv/bin:$PATH" ./scripts/run-tests.sh`: 33 tests passed,
   including the project-relative Oryx startup-path contract.
 - `./scripts/build-bicep.sh`: every Bicep entry point and module compiled; only
   expected `BCP081` warnings remained for preview types absent from the local

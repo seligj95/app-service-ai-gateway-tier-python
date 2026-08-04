@@ -6,10 +6,11 @@ from types import ModuleType
 
 import httpx
 import pytest
+from azure.monitor import opentelemetry
 
 from app.agent import GatewayAgent
 from app.safe_logging import safe_log
-from app.telemetry import safe_telemetry_attributes
+from app.telemetry import configure_telemetry, safe_telemetry_attributes
 
 
 def test_safe_logging_never_records_secret_values(caplog) -> None:
@@ -40,6 +41,28 @@ def test_telemetry_attributes_exclude_prompt_response_and_secrets() -> None:
         }
     )
     assert attributes == {"correlation_id": "trace-1", "http.route": "/api/chat/stream"}
+
+
+def test_telemetry_enables_application_info_events(monkeypatch) -> None:
+    configured: dict[str, str] = {}
+    app_logger = logging.getLogger("app")
+    previous_level = app_logger.level
+    app_logger.setLevel(logging.WARNING)
+
+    def fake_configure_azure_monitor(*, connection_string: str) -> None:
+        configured["connection_string"] = connection_string
+
+    monkeypatch.setattr(
+        opentelemetry,
+        "configure_azure_monitor",
+        fake_configure_azure_monitor,
+    )
+    try:
+        assert configure_telemetry("InstrumentationKey=test") is True
+        assert app_logger.level == logging.INFO
+        assert configured == {"connection_string": "InstrumentationKey=test"}
+    finally:
+        app_logger.setLevel(previous_level)
 
 
 @pytest.mark.asyncio
