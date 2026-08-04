@@ -175,13 +175,15 @@ registry.
 
 Validated on 2026-08-04 without recording subscription-specific identifiers:
 
-- `PATH="$PWD/.venv/bin:$PATH" ./scripts/run-tests.sh`: 30 tests passed.
+- `PATH="$PWD/.venv/bin:$PATH" ./scripts/run-tests.sh`: 32 tests passed,
+  including the project-relative Oryx startup-path contract.
 - `./scripts/build-bicep.sh`: every Bicep entry point and module compiled; only
   expected `BCP081` warnings remained for preview types absent from the local
   Bicep registry.
 - `azd provision --preview --no-prompt`: generated the infrastructure preview
   successfully without applying changes.
-- `azd package --no-prompt`: packaged the App Service application successfully.
+- `azd package web --no-prompt`: packaged the App Service application
+  successfully.
 - Azure Developer CLI 1.29.0 authentication, subscription/location selection,
   and the explicit `production` App Service deployment target were confirmed.
 
