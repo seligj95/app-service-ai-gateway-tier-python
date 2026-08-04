@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementation complete; portable validation procedures documented
+Validated
 
 ## Scope
 
@@ -170,6 +170,20 @@ redaction, least-privilege contracts, lifecycle guards, and shell syntax. The
 Bicep build compiles each entry point and module; preview resources may produce
 `BCP081` warnings when their types are not yet present in the local Bicep type
 registry.
+
+## Validation proof
+
+Validated on 2026-08-04 without recording subscription-specific identifiers:
+
+- `PATH="$PWD/.venv/bin:$PATH" ./scripts/run-tests.sh`: 30 tests passed.
+- `./scripts/build-bicep.sh`: every Bicep entry point and module compiled; only
+  expected `BCP081` warnings remained for preview types absent from the local
+  Bicep registry.
+- `azd provision --preview --no-prompt`: generated the infrastructure preview
+  successfully without applying changes.
+- `azd package --no-prompt`: packaged the App Service application successfully.
+- Azure Developer CLI 1.29.0 authentication, subscription/location selection,
+  and the explicit `production` App Service deployment target were confirmed.
 
 Before provisioning an authorized disposable environment:
 
