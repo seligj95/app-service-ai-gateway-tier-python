@@ -21,13 +21,24 @@ The application retry wrapper is therefore the sole model retry mechanism.
 It builds an `MCPStreamableHTTPTool` for the gateway ToolServer route with:
 
 - a 30-second explicit MCP request timeout;
-- a fixed gateway-published `appservice-ops_get_service_status` and
-  `appservice-ops_get_deployment_context` allow-list;
+- a fixed allow-list containing the AI Gateway-advertised remote names
+  `appservice-ops_get_service_status` and
+  `appservice-ops_get_deployment_context`;
+- no additional Agent Framework tool-name prefix, avoiding a double prefix;
 - an origin-scoped header provider for the runtime `api-key`.
 
-The ToolServer then adds `x-appservice-mcp-secret` to its backend request. The
-FastAPI `/mcp` endpoint rejects absent or invalid values in constant time. It
-does not expose mutable or destructive tools.
+The backend `/mcp` server defines raw `get_service_status` and
+`get_deployment_context` names. The AI Gateway ToolServer route advertises them
+to Agent Framework with its `appservice-ops` prefix and adds
+`x-appservice-mcp-secret` to the backend request. The FastAPI `/mcp` endpoint
+rejects absent or invalid values in constant time. It does not expose mutable or
+destructive tools.
+
+For the two documented operational intents, the application sets Agent
+Framework `tool_choice` to the corresponding required gateway-advertised tool.
+This makes the status and deployment-context demonstrations deterministic
+instead of depending on whether the model elects to follow a tool-use
+instruction. All other prompts retain automatic tool selection.
 
 ## Streaming and errors
 
@@ -117,9 +128,10 @@ placing it in terminal output, azd environment values, or command logs. It
 removes those files on exit.
 
 Secret creation uses the Key Vault ARM resource API rather than requiring the
-deploying workstation to reach the vault data plane. This supports the Demo
-Three `SecuredByPerimeter` setting; App Service reaches the vault privately
-through its VNet integration, Key Vault private endpoint, and private DNS.
+deploying workstation to reach the vault data plane. This supports an optional
+`SecuredByPerimeter` configuration; App Service reaches the vault privately
+through its VNet integration, Key Vault private endpoint, and private DNS when
+that network design is enabled.
 
 Before provisioning, an initialization hook supplies portable defaults for
 optional azd parameters and resolves the current deployment principal when

@@ -66,6 +66,13 @@ def test_bicep_grants_least_privilege_deployment_secret_access_and_service_tags(
     assert "tags: union(webHostingTags" not in staging_resource
     assert "name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'" in bicep
     assert "name: 'ENABLE_ORYX_BUILD'" in bicep
+    assert (
+        "var appStartupCommand = 'gunicorn --chdir src "
+        "--bind=0.0.0.0:8000 --timeout 120 "
+        "--worker-class uvicorn.workers.UvicornWorker app.main:app'"
+    ) in bicep
+    assert bicep.count("appCommandLine: appStartupCommand") == 2
+    assert "/home/site/wwwroot/src" not in bicep
 
 
 def test_toolserver_contract_and_no_secret_env_persistence() -> None:

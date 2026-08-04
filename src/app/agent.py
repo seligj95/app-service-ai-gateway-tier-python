@@ -12,6 +12,35 @@ from .errors import GatewayFailure, classify_gateway_exception
 from .retry import RetryPolicy, retry_stream
 
 
+SERVICE_STATUS_TOOL = "appservice-ops_get_service_status"
+DEPLOYMENT_CONTEXT_TOOL = "appservice-ops_get_deployment_context"
+_SERVICE_STATUS_PROMPTS = frozenset(
+    {
+        "what is the current service status",
+        "show the current service status",
+        "check the service status",
+        "is the service healthy",
+    }
+)
+_DEPLOYMENT_CONTEXT_PROMPTS = frozenset(
+    {
+        "which site and deployment slot are you running in",
+        "which site and slot are you running in",
+        "what is the deployment context",
+        "show the deployment context",
+    }
+)
+
+
+def _required_tool_for(message: str) -> str | None:
+    normalized = " ".join(message.casefold().split()).strip(" ?!.")
+    if normalized in _SERVICE_STATUS_PROMPTS:
+        return SERVICE_STATUS_TOOL
+    if normalized in _DEPLOYMENT_CONTEXT_PROMPTS:
+        return DEPLOYMENT_CONTEXT_TOOL
+    return None
+
+
 class GatewayAgent:
     """Runs Agent Framework with model and MCP traffic pinned to gateway routes."""
 
@@ -46,8 +75,8 @@ class GatewayAgent:
                 url=self._settings.gateway_mcp_url,
                 request_timeout=self._settings.mcp_timeout_seconds,
                 allowed_tools=(
-                    "appservice-ops_get_service_status",
-                    "appservice-ops_get_deployment_context",
+                    SERVICE_STATUS_TOOL,
+                    DEPLOYMENT_CONTEXT_TOOL,
                 ),
                 header_provider=lambda _kwargs: gateway_headers,
             )
@@ -56,8 +85,9 @@ class GatewayAgent:
                 name="AppServiceGatewayAgent",
                 instructions=(
                     "You are a concise App Service operations assistant. Use only the supplied "
-                    "read-only tools when operational context is necessary. When asked for live "
-                    "service or deployment state, call the matching appservice-ops tool."
+                    "read-only tools when operational context is necessary. For live service or "
+                    "deployment questions, you MUST call the matching appservice-ops tool before "
+                    "answering. Never claim lack of access when a matching tool is available."
                 ),
                 tools=mcp_tool,
             )
@@ -69,9 +99,21 @@ class GatewayAgent:
     async def _attempt(self, message: str, correlation_id: str) -> AsyncIterator[str]:
         try:
             async with self._connected_agent() as agent:
+                required_tool = _required_tool_for(message)
+                options = (
+                    {
+                        "tool_choice": {
+                            "mode": "required",
+                            "required_function_name": required_tool,
+                        }
+                    }
+                    if required_tool
+                    else None
+                )
                 updates = agent.run(
                     message,
                     stream=True,
+                    options=options,
                     client_kwargs={"extra_headers": {"x-correlation-id": correlation_id}},
                 )
                 async for update in updates:

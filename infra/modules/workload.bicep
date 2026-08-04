@@ -31,6 +31,7 @@ var keyVaultSecretsOfficerRoleDefinitionId = subscriptionResourceId('Microsoft.A
 var webHostingTags = union(tags, {
   'azd-service-name': 'web'
 })
+var appStartupCommand = 'gunicorn --chdir src --bind=0.0.0.0:8000 --timeout 120 --worker-class uvicorn.workers.UvicornWorker app.main:app'
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   name: virtualNetworkName
@@ -403,7 +404,7 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
     virtualNetworkSubnetId: integrationSubnet.id
     siteConfig: {
       linuxFxVersion: 'PYTHON|3.12'
-      appCommandLine: 'gunicorn --chdir /home/site/wwwroot/src --bind=0.0.0.0:8000 --timeout 120 --worker-class uvicorn.workers.UvicornWorker app.main:app'
+      appCommandLine: appStartupCommand
       alwaysOn: true
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
@@ -430,7 +431,7 @@ resource stagingSlot 'Microsoft.Web/sites/slots@2024-04-01' = {
     virtualNetworkSubnetId: integrationSubnet.id
     siteConfig: {
       linuxFxVersion: 'PYTHON|3.12'
-      appCommandLine: 'gunicorn --chdir /home/site/wwwroot/src --bind=0.0.0.0:8000 --timeout 120 --worker-class uvicorn.workers.UvicornWorker app.main:app'
+      appCommandLine: appStartupCommand
       alwaysOn: true
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'

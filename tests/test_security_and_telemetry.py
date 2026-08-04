@@ -6,10 +6,11 @@ from types import ModuleType
 
 import httpx
 import pytest
+from azure.monitor import opentelemetry
 
 from app.agent import GatewayAgent
 from app.safe_logging import safe_log
-from app.telemetry import safe_telemetry_attributes
+from app.telemetry import configure_telemetry, safe_telemetry_attributes
 
 
 def test_safe_logging_never_records_secret_values(caplog) -> None:
@@ -40,6 +41,28 @@ def test_telemetry_attributes_exclude_prompt_response_and_secrets() -> None:
         }
     )
     assert attributes == {"correlation_id": "trace-1", "http.route": "/api/chat/stream"}
+
+
+def test_telemetry_enables_application_info_events(monkeypatch) -> None:
+    configured: dict[str, str] = {}
+    app_logger = logging.getLogger("app")
+    previous_level = app_logger.level
+    app_logger.setLevel(logging.WARNING)
+
+    def fake_configure_azure_monitor(*, connection_string: str) -> None:
+        configured["connection_string"] = connection_string
+
+    monkeypatch.setattr(
+        opentelemetry,
+        "configure_azure_monitor",
+        fake_configure_azure_monitor,
+    )
+    try:
+        assert configure_telemetry("InstrumentationKey=test") is True
+        assert app_logger.level == logging.INFO
+        assert configured == {"connection_string": "InstrumentationKey=test"}
+    finally:
+        app_logger.setLevel(previous_level)
 
 
 @pytest.mark.asyncio
@@ -104,9 +127,16 @@ async def test_agent_framework_uses_explicit_gateway_transport_and_mcp_route(
     assert client["async_client"].closed is True
     assert captured["transport_closed"] is True
     assert mcp["url"] == settings.gateway_mcp_url
+    assert "tool_name_prefix" not in mcp
     assert mcp["allowed_tools"] == (
         "appservice-ops_get_service_status",
         "appservice-ops_get_deployment_context",
     )
     assert mcp["header_provider"]({}) == {"api-key": settings.gateway_api_key}
+    agent = captured["agent"]
+    assert isinstance(agent, dict)
+    instructions = agent["instructions"]
+    assert isinstance(instructions, str)
+    assert "MUST call the matching appservice-ops tool before answering" in instructions
+    assert "Never claim lack of access when a matching tool is available" in instructions
     assert settings.gateway_api_key not in caplog.text

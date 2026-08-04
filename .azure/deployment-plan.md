@@ -2,7 +2,7 @@
 
 ## Status
 
-Deployed and Verified
+Validated
 
 ## Scope
 
@@ -13,9 +13,9 @@ MCP tool access, with no direct provider fallback.
 
 ## Azure context
 
-- Subscription: Demo Three Subscription
-  (`7e574780-0f87-42e8-af8c-5e8cb7d3540a`)
-- Location: East US 2
+- Subscription: selected through `AZURE_SUBSCRIPTION_ID` and authorized for the
+  dedicated AI Gateway tier preview
+- Location: an entitled preview region, such as East US 2
 - Deployment: Azure Developer CLI with Bicep
 - Resource ownership: every resource is scoped to the current `azd` environment
   and tagged for deterministic cleanup
@@ -48,7 +48,8 @@ MCP tool access, with no direct provider fallback.
 - Managed identity suitable for Key Vault references
 - Virtual network and App Service integration subnet
 - Key Vault with RBAC authorization and portable network configuration
-- Demo Three override for `publicNetworkAccess: SecuredByPerimeter`
+- Parameterized Key Vault public-network mode and optional private endpoint for
+  target environments that require an existing network security perimeter
 - Log Analytics workspace and workspace-based Application Insights
 - Microsoft Foundry/Azure AI Services account
 - `gpt-5-mini` GlobalStandard deployment, capacity 1, parameterized version
@@ -98,8 +99,8 @@ MCP tool access, with no direct provider fallback.
 - Key Vault references for application secrets
 - No direct provider credentials or fallback path in the application
 - Direct MCP backend denies missing or invalid backend secret
-- Portable Key Vault network parameter with the Demo Three
-  `SecuredByPerimeter` override documented and validated
+- Portable Key Vault network parameter with an optional
+  `SecuredByPerimeter` configuration documented for compatible environments
 - Validate Cognitive Services local-auth governance and App Service public
   network policy before deployment
 
@@ -113,15 +114,14 @@ MCP tool access, with no direct provider fallback.
 4. Implement secure post-provision key handling and ToolServer credential
    injection.
 5. Add unit, integration-contract, lifecycle, redaction, and Bicep tests.
-6. Write the README, architecture, preview limitations, sample differences,
-   Tech Community HTML body fragment, and claims/screenshot checklist.
+6. Write the README, architecture, preview limitations, and sample differences.
 7. Run local tests, static checks, and Bicep builds.
-8. Set this plan status to `Ready for Validation` and invoke `azure-validate`.
-9. Invoke `azure-deploy`, run a resource-group what-if, deploy to Demo Three,
-   and verify health, model streaming, MCP routing/security, expected failure
-   paths, and Application Insights telemetry.
-10. Commit and push all deliverables, then report results and any verified
-    preview limitations to the creator session.
+8. Scan tracked files for secrets and environment-specific Azure identifiers.
+9. In an authorized disposable environment, run a resource-group what-if,
+   deploy, and verify health, model streaming, MCP routing/security, expected
+   failure paths, and Application Insights telemetry.
+10. Keep subscription-specific names, IDs, endpoints, timestamps, and deployment
+    evidence outside the tracked repository.
 
 ## Validation criteria
 
@@ -156,79 +156,64 @@ This sample demonstrates public-preview APIs and has no SLA. It must never be
 described as production-ready. Preview APIs, regions, limits, pricing, portal
 surfaces, and contracts can change.
 
-## Azure validation steps
+## Portable validation procedure
 
-- [x] Azure Developer CLI installation and authentication
-- [x] `azure.yaml` schema validation
-- [x] Demo Three environment, subscription, principal, and East US 2 context
-- [x] Provider registration and preview API inspection
-- [x] `gpt-5-mini` GlobalStandard quota inspection
-- [x] Python tests and application package validation
-- [x] Bicep compilation and lint
-- [x] Static least-privilege RBAC verification
-- [x] Azure Policy review
-- [x] No-change azd provisioning preview
+Run local validation before using an Azure subscription:
 
-## Section 7: Validation Proof
+```bash
+./scripts/run-tests.sh
+./scripts/build-bicep.sh
+```
 
-Validated on 2026-08-03 against Demo Three Subscription in East US 2.
+The tests cover retry behavior, SSE, MCP authentication and tools, telemetry
+redaction, least-privilege contracts, lifecycle guards, and shell syntax. The
+Bicep build compiles each entry point and module; preview resources may produce
+`BCP081` warnings when their types are not yet present in the local Bicep type
+registry.
 
-- `azure-azd validate_azure_yaml`: passed against the stable schema.
-- `azd auth login --check-status`: authenticated.
-- Demo Three context: subscription
-  `7e574780-0f87-42e8-af8c-5e8cb7d3540a`, environment
-  `ai-gateway-tier-demo3`, location `eastus2`.
-- Provider inspection: `Microsoft.ApiManagement`, `Microsoft.Web`,
-  `Microsoft.CognitiveServices`, `Microsoft.KeyVault`, `Microsoft.Network`,
-  `Microsoft.Insights`, and `Microsoft.OperationalInsights` are registered.
-  APIM advertises `2025-09-01-preview`; no provider registration was changed.
-- `az cognitiveservices usage list --location eastus2`: `gpt-5-mini`
-  GlobalStandard limit 1000 TPM, current usage 0.
-- `./.venv/bin/python -m pytest`: 26 passed.
-- `bash scripts/build-bicep.sh`: all Bicep files built. `BCP081` warnings are
-  limited to the requested preview types missing from the local Bicep type
-  registry.
-- `az bicep lint` on both templates: passed with the same preview type warnings.
-- `azd package --no-prompt`: App Service package created successfully.
-- `azd provision --preview --no-prompt`: succeeded in 24 seconds with only
-  create operations under deterministic resource group
-  `rg-ai-gateway-tier-demo3-k6adxbp64d`.
-- Static RBAC review:
-  - gateway system identity -> Foundry User at the Azure AI Services account;
-  - web and staging identities -> Key Vault Secrets User at the vault;
-  - deployment principal -> Key Vault Secrets Officer at the vault.
-- Policy review: Cognitive Services local authentication is disabled by the
-  template; Key Vault uses the required `SecuredByPerimeter` Demo Three value;
-  the applicable App Service public-network built-in is Audit, not Deny; VNet
-  outbound routing and TLS settings are configured.
+## Validation proof
 
-## Deployment Verification
+Validated on 2026-08-04 without recording subscription-specific identifiers:
 
-- Infrastructure provisioned successfully in deterministic resource group
-  `rg-ai-gateway-tier-demo3-k6adxbp64d`.
-- App Service endpoint:
-  `https://appsvc-aigw-k6adxbp64d.azurewebsites.net/`.
-- Health and status return 200; status reports gateway configured, telemetry
-  enabled, and stable model `appservice-chat`.
-- Direct model streaming through the gateway passed.
-- Gateway ToolServer initialization, tool discovery, and `tools/call` passed;
-  the App Service backend returned `status: healthy`.
-- Direct `/mcp` without the backend secret returned 401.
-- Invalid runtime key returned 401; unknown model returned 404.
-- Disposable 1-TPM policy returned 429. The preview response did not emit
-  `Retry-After`; the policy was restored to 1000 TPM. Client tests cover both
-  header-present and header-absent bounded retry behavior.
-- Live role verification passed for gateway Foundry User and production/staging
-  Key Vault Secrets User assignments.
-- Application Insights contains 105 request records from deployment and live
-  checks. Gateway telemetry contains six `gen_ai.client.token.usage` samples
-  totaling 1336 tokens. The documented preview limitation remains: gateway OTLP
-  exports model token usage, not MCP traffic.
-- Production `/health` returns 200 after `azd deploy`; postdeploy verifies that
-  URL directly and performs no slot swap. Predeploy pins azd's explicit
-  `AZD_DEPLOY_WEB_SLOT_NAME=production` target. Live validation with azd 1.29.0
-  reported `Deploying to production (main app)` and created production
-  deployment `42587b10-f020-4354-87b6-ab8a22e0687a`. The existing staging slot
-  also returned 200, with older deployment
-  `6182a91d-93ae-42b6-af4f-42809488a1a0`; staging was not touched by the final
-  production deploy and is not part of the default deployment contract.
+- `PATH="$PWD/.venv/bin:$PATH" ./scripts/run-tests.sh`: 34 tests passed,
+  including the project-relative Oryx startup-path contract.
+- `./scripts/build-bicep.sh`: every Bicep entry point and module compiled; only
+  expected `BCP081` warnings remained for preview types absent from the local
+  Bicep registry.
+- `azd provision --preview --no-prompt`: generated the infrastructure preview
+  successfully without applying changes.
+- `azd package web --no-prompt`: packaged the App Service application
+  successfully.
+- Azure Developer CLI 1.29.0 authentication, subscription/location selection,
+  and the explicit `production` App Service deployment target were confirmed.
+
+Before provisioning an authorized disposable environment:
+
+- Confirm Azure Developer CLI authentication and validate `azure.yaml`.
+- Confirm the selected subscription, deployment principal, region entitlement,
+  provider availability, model version, and quota.
+- Review Azure Policy effects and least-privilege role-assignment permissions.
+- Run a no-change provisioning preview or resource-group what-if.
+
+## Expected deployment verification
+
+After an authorized deployment, verify the following without committing
+resource names, IDs, URLs, timestamps, telemetry counts, or command output:
+
+- `/health` and `/status` return 200 and report the expected generic
+  configuration state.
+- Model responses stream only through the AI Gateway route.
+- Gateway ToolServer initialization, discovery, and a read-only `tools/call`
+  succeed.
+- Direct `/mcp` access without the backend secret returns 401.
+- An invalid runtime key returns 401 and an unknown model returns 404.
+- A disposable low token limit returns 429; record separately whether the
+  response includes `Retry-After`.
+- Client tests cover both header-present and header-absent bounded retry
+  behavior, plus transient 5xx and partial-stream handling.
+- Gateway Foundry User and App Service Key Vault Secrets User assignments are
+  scoped only to the intended resources.
+- Application Insights receives safe request/dependency telemetry, and the
+  gateway exporter emits model token usage without MCP payloads.
+- Production health succeeds after `azd deploy`; the default flow does not
+  deploy or swap the optional staging slot.
