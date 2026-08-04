@@ -34,6 +34,12 @@ to Agent Framework with its `appservice-ops` prefix and adds
 rejects absent or invalid values in constant time. It does not expose mutable or
 destructive tools.
 
+For the two documented operational intents, the application sets Agent
+Framework `tool_choice` to the corresponding required gateway-advertised tool.
+This makes the status and deployment-context demonstrations deterministic
+instead of depending on whether the model elects to follow a tool-use
+instruction. All other prompts retain automatic tool selection.
+
 ## Streaming and errors
 
 `POST /api/chat/stream` emits SSE events:
