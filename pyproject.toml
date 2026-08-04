@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "app-service-ai-gateway-tier-python"
+version = "0.1.0"
+description = "Preview-only FastAPI and Microsoft Agent Framework sample for the dedicated APIM AI Gateway tier."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "agent-framework-core==1.13.0",
+  "agent-framework-openai==1.12.0",
+  "azure-monitor-opentelemetry>=1.6.0",
+  "fastapi>=0.115.0",
+  "gunicorn>=23.0.0",
+  "httpx>=0.28.0",
+  "jinja2>=3.1.5",
+  "mcp>=1.24.0,<2",
+  "openai>=2.0.0",
+  "uvicorn[standard]>=0.34.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+asyncio_mode = "auto"
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,42 @@
+name: app-service-ai-gateway-tier-python
+metadata:
+  template: app-service-ai-gateway-tier-python@0.1.0
+
+services:
+  web:
+    project: .
+    host: appservice
+    language: python
+    resourceGroup: ${AZURE_RESOURCE_GROUP}
+    resourceName: ${WEB_NAME}
+
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
+hooks:
+  predeploy:
+    shell: sh
+    continueOnError: false
+    run: azd env set AZD_DEPLOY_WEB_SLOT_NAME production --no-prompt >/dev/null
+  preprovision:
+    shell: sh
+    continueOnError: false
+    run: bash scripts/ensure-azd-parameters.sh && bash scripts/manage-ai-gateway-lifecycle.sh prepare
+  postprovision:
+    shell: sh
+    continueOnError: false
+    run: bash scripts/postprovision.sh configure
+  postdeploy:
+    shell: sh
+    continueOnError: false
+    run: bash scripts/postprovision.sh verify
+  predown:
+    shell: sh
+    continueOnError: false
+    run: bash scripts/manage-ai-gateway-lifecycle.sh predown
+  postdown:
+    shell: sh
+    continueOnError: true
+    run: bash scripts/manage-ai-gateway-lifecycle.sh postdown

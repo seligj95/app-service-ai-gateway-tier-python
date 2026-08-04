@@ -1,0 +1,28 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #1b1b1b;
+  background: #f5f7fa;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+.shell { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+h1 { margin: 4px 0 12px; font-weight: 600; }
+.eyebrow { color: #005fb8; font-size: .85rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.summary, .muted { color: #5e5e5e; }
+.status, .chat { background: #fff; border: 1px solid #d1d1d1; border-radius: 8px; padding: 16px; }
+.status { display: flex; gap: 10px; align-items: center; margin: 28px 0 16px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.ready { background: #107c10; }
+.waiting { background: #d83b01; }
+.transcript { min-height: 260px; max-height: 420px; overflow-y: auto; white-space: pre-wrap; padding: 8px 0 20px; }
+.message { border-radius: 6px; margin: 10px 0; padding: 10px 12px; }
+.user { background: #e8f2ff; }
+.assistant { background: #f3f3f3; }
+.error { background: #fde7e9; color: #a80000; }
+label { display: block; font-weight: 600; margin-bottom: 8px; }
+.composer { display: flex; gap: 12px; }
+textarea { flex: 1; min-height: 72px; resize: vertical; font: inherit; padding: 10px; }
+button { align-self: flex-end; background: #005fb8; border: 0; border-radius: 4px; color: #fff; cursor: pointer; font: inherit; padding: 10px 18px; }
+button:disabled { background: #a6a6a6; cursor: wait; }
