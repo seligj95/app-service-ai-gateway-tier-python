@@ -57,17 +57,29 @@ def _headers_from_exception(error: BaseException) -> Mapping[str, str]:
     return headers if isinstance(headers, Mapping) else {}
 
 
+def _http_error_from_chain(error: BaseException) -> tuple[BaseException, int | None]:
+    current: BaseException | None = error
+    seen: set[int] = set()
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        status = getattr(current, "status_code", None)
+        response = getattr(current, "response", None)
+        if status is None:
+            status = getattr(response, "status_code", None)
+        if isinstance(status, int):
+            return current, status
+        current = current.__cause__ or current.__context__
+    return error, None
+
+
 def classify_gateway_exception(error: BaseException) -> GatewayFailure:
     """Classify common HTTP client failures without retaining response bodies."""
 
-    status = getattr(error, "status_code", None)
-    response = getattr(error, "response", None)
+    http_error, status = _http_error_from_chain(error)
     if status is None:
-        status = getattr(response, "status_code", None)
-    if not isinstance(status, int):
         return GatewayFailure(503, "gateway_unavailable")
 
-    headers = _headers_from_exception(error)
+    headers = _headers_from_exception(http_error)
     retry_after = parse_retry_after(headers.get("retry-after") or headers.get("Retry-After"))
     if status == 401:
         return GatewayFailure(status, "gateway_unauthorized")

@@ -4,7 +4,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from app.errors import GatewayFailure, parse_retry_after
+from app.errors import GatewayFailure, classify_gateway_exception, parse_retry_after
 from app.retry import RetryPolicy, retry_stream
 
 
@@ -115,3 +115,26 @@ async def test_partial_stream_is_never_retried() -> None:
 def test_retry_after_parses_delta_seconds() -> None:
     assert parse_retry_after("2.5") == 2.5
     assert parse_retry_after("invalid") is None
+
+
+def test_wrapped_rate_limit_preserves_status_and_retry_after() -> None:
+    class Response:
+        status_code = 429
+        headers = {"Retry-After": "7"}
+
+    class RateLimitError(Exception):
+        status_code = 429
+        response = Response()
+
+    try:
+        try:
+            raise RateLimitError("upstream body must not escape")
+        except RateLimitError as upstream:
+            raise RuntimeError("framework wrapper") from upstream
+    except RuntimeError as wrapped:
+        failure = classify_gateway_exception(wrapped)
+
+    assert failure.status_code == 429
+    assert failure.code == "gateway_rate_limited"
+    assert failure.retry_after_seconds == 7
+    assert str(failure) == "gateway_rate_limited"
