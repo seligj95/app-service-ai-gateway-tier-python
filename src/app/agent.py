@@ -45,9 +45,10 @@ class GatewayAgent:
                 name="appservice-ops",
                 url=self._settings.gateway_mcp_url,
                 request_timeout=self._settings.mcp_timeout_seconds,
+                tool_name_prefix="appservice-ops",
                 allowed_tools=(
-                    "appservice-ops_get_service_status",
-                    "appservice-ops_get_deployment_context",
+                    "get_service_status",
+                    "get_deployment_context",
                 ),
                 header_provider=lambda _kwargs: gateway_headers,
             )

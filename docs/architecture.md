@@ -21,8 +21,11 @@ The application retry wrapper is therefore the sole model retry mechanism.
 It builds an `MCPStreamableHTTPTool` for the gateway ToolServer route with:
 
 - a 30-second explicit MCP request timeout;
-- a fixed gateway-published `appservice-ops_get_service_status` and
-  `appservice-ops_get_deployment_context` allow-list;
+- a fixed raw remote allow-list containing `get_service_status` and
+  `get_deployment_context`;
+- the `appservice-ops` tool-name prefix, which exposes those functions locally
+  as `appservice-ops_get_service_status` and
+  `appservice-ops_get_deployment_context`;
 - an origin-scoped header provider for the runtime `api-key`.
 
 The ToolServer then adds `x-appservice-mcp-secret` to its backend request. The

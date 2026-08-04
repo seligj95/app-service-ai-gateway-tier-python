@@ -104,9 +104,10 @@ async def test_agent_framework_uses_explicit_gateway_transport_and_mcp_route(
     assert client["async_client"].closed is True
     assert captured["transport_closed"] is True
     assert mcp["url"] == settings.gateway_mcp_url
+    assert mcp["tool_name_prefix"] == "appservice-ops"
     assert mcp["allowed_tools"] == (
-        "appservice-ops_get_service_status",
-        "appservice-ops_get_deployment_context",
+        "get_service_status",
+        "get_deployment_context",
     )
     assert mcp["header_provider"]({}) == {"api-key": settings.gateway_api_key}
     assert settings.gateway_api_key not in caplog.text
