@@ -62,7 +62,6 @@ security boundaries.
 | `scripts/manage-ai-gateway-lifecycle.sh` | Bounded current-environment-only failed recovery and predown/postdown gateway cleanup. |
 | `tests/` | Pytest coverage plus infrastructure and shell contract checks. |
 | `docs/` | Architecture, preview limitations, and comparisons. |
-| `blog/` | Unpublished Tech Community body fragment and claims/screenshot checklist. |
 
 ## Prerequisites
 
@@ -353,7 +352,7 @@ attributes. The gateway telemetry exporter preview is documented as exporting
 4. Restore the original deployment registration if verification fails.
 
 Stable model swap support remains a preview claim to validate in the target
-portal and API version; see the screenshot checklist before publishing claims.
+portal and API version before presenting it as a supported behavior.
 
 ### Cleanup
 
@@ -374,5 +373,3 @@ It does not perform broad subscription or resource-group deletion.
 Read [docs/preview-limitations.md](docs/preview-limitations.md) before using
 the sample. The related-source comparison is in
 [docs/differences-from-existing-samples.md](docs/differences-from-existing-samples.md).
-The unpublished blog draft and its claims/screenshot checklist are under
-`blog/`.

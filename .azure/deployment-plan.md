@@ -114,8 +114,7 @@ MCP tool access, with no direct provider fallback.
 4. Implement secure post-provision key handling and ToolServer credential
    injection.
 5. Add unit, integration-contract, lifecycle, redaction, and Bicep tests.
-6. Write the README, architecture, preview limitations, sample differences,
-   Tech Community HTML body fragment, and claims/screenshot checklist.
+6. Write the README, architecture, preview limitations, and sample differences.
 7. Run local tests, static checks, and Bicep builds.
 8. Scan tracked files for secrets and environment-specific Azure identifiers.
 9. In an authorized disposable environment, run a resource-group what-if,
